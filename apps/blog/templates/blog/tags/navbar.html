@@ -1,0 +1,145 @@
+{% load blog_tags %}
+{% load static oauth_tags comment_tags %}
+<nav class="navbar navbar-expand-md bg-white fixed-top blog-navbar py-md-0">
+    <a class="navbar-brand d-md-none d-lg-block" id="site-logo-name" href="{% url 'blog:index' %}">
+        <strong class="px-2">{{ site_logo_name }}</strong>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                {% url 'blog:index' as index_url %}
+                <a class="nav-link py-md-3 {% if request.path == index_url %}active{% endif %}"
+                   href="{{ index_url }}">首页<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                {% url 'blog:subject_index' as subject_index_url %}
+                <a class="nav-link py-md-3 {% if request.path == subject_index_url %}active{% endif %}"
+                   href="{{ subject_index_url }}">专题</a>
+            </li>
+            <li class="nav-item">
+                {% url 'blog:archive' as archive_url %}
+                <a class="nav-link py-md-3 {% if request.path == archive_url %}active{% endif %}"
+                   href="{{ archive_url }}">归档</a>
+            </li>
+            {% if tool_flag %}
+                <li class="nav-item">
+                    {% url 'tool:total' as tool_url %}
+                    <a class="nav-link py-md-3 {% if request.resolver_match.namespace == 'tool' %}active{% endif %}"
+                       href="{{ tool_url }}">在线工具</a>
+                </li>
+            {% endif %}
+
+            <li class="nav-item dropdown d-xs-block d-sm-none d-lg-block">
+                {% url 'webstack:webstack_index' as webstack_index_url %}
+                {% url 'blog:feedhub' as feed_hub_url %}
+                {% url 'monitor:demo' as monitor_demo_url %}
+                {% url 'portinfo:index' as portinfo_url %}
+                <a class="nav-link dropdown-toggle py-md-3 {% if request.path == webstack_index_url or request.path == feed_hub_url or request.path == monitor_demo_url %}active{% endif %}"
+                   href="#"
+                   id="more-link"
+                   role="button"
+                   data-toggle="dropdown"
+                   aria-haspopup="true"
+                   aria-expanded="false"
+                >扩展功能</a>
+                <div class="dropdown-menu dropdown-menu-left mt-0 border-0" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item pl-3" href="{{ webstack_index_url }}"
+                       title="个人的导航网站">
+                        <i class="fa fa-fw fa-chrome text-info mr-2"></i>网址导航</a>
+                    <a class="dropdown-item pl-3" href="{{ feed_hub_url }}"
+                       title="个人的内容聚合平台">
+                        <i class="fa fa-fw fa-rss-square text-info mr-2"></i>Feed Hub</a>
+                    <a class="dropdown-item pl-3" href="{{ monitor_demo_url }}"><i
+                                    class="fa fa-fw fa-tachometer text-info mr-2"></i>监控Demo</a>
+                    <a class="dropdown-item pl-3" href="{{ portinfo_url }}"><i
+                                    class="fa fa-fw fa-bullseye text-info mr-2"></i>端口大全</a>
+                </div>
+            </li>
+
+
+            {% if api_flag %}
+                <li class="nav-item d-xs-block d-sm-none d-lg-block">
+                    <a class="nav-link py-md-3" href="{% url 'api:api-root' %}" target="_blank">API</a>
+                </li>
+            {% endif %}
+
+            <!-- 个人外链 -->
+            {% load_menu_link %}
+
+            <li class="nav-item">
+                {% url 'blog:friend' as friend_url %}
+                <a class="nav-link py-md-3 {% if request.path == friend_url %}active{% endif %}"
+                   href="{{ friend_url }}">友情链接</a>
+            </li>
+            <li class="nav-item mr-2">
+                {% url 'blog:about' as about_url %}
+                <a class="nav-link py-md-3 {% if request.path == about_url %}active{% endif %}"
+                   href="{{ about_url }}">关于</a>
+            </li>
+            <form class="nav-item navbar-form py-md-2 mr-2" role="search" method="get" id="searchform"
+                  action="{% url 'blog:search_view' %}">
+                <div class="input-group">
+                    <input type="search" name="q" class="form-control" placeholder="站内搜索" autocomplete="off"
+                           required>
+                    <div class="input-group-btn">
+                        <button class="btn btn-info" type="submit" aria-label="文章搜索">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                </div><!-- /input-group -->
+            </form>
+        </ul>
+        <ul class="navbar-nav">
+            {% if user.is_authenticated %}
+                {% get_notifications_count user 'false' as msgnum %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                       data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false" title="{{ user.username }}，欢迎回来！">
+                        {% if msgnum > 0 %}
+                            <span class="get-msg text-center">{{ msgnum }}</span>
+                        {% endif %}
+                        {% get_user_avatar_tag user %}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right mt-0 border-0"
+                         aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item pl-3" href="{% url 'oauth:profile' %}"><i
+                                class="fa fa-fw fa-user text-info mr-2"></i>个人资料</a>
+                        {% if user.is_staff %}
+                            <a class="dropdown-item pl-3" href="{% url 'admin:index' %}"><i
+                                    class="fa fa-fw fa-key text-info mr-2"></i>后台管理</a>
+                            <a class="dropdown-item pl-3" href="{% url 'blog:dashboard' %}"><i
+                                    class="fa fa-fw fa-line-chart text-info mr-2"></i>网站看板</a>
+                            <a class="dropdown-item pl-3" href="{% url 'monitor:index' %}"><i
+                                    class="fa fa-fw fa-tachometer text-info mr-2"></i>监控面板</a>
+                            <a class="dropdown-item pl-3" href="{% url 'admin:blog_article_add' %}"><i
+                                    class="fa fa-fw fa-plus text-info mr-2"></i>新增文章</a>
+                        {% endif %}
+                        {% url 'comment:notification_no_read' as no_read_url %}
+                        {% url 'comment:notification' as read_url %}
+                        <a class="dropdown-item pl-3"
+                           href="{% if msgnum > 0 %}{{ no_read_url }}{% else %}{{ read_url }}{% endif %}">
+                            <i class="fa fa-fw fa-bell text-info mr-2"></i>消息
+                            {% if msgnum > 0 %}
+                                <span class="badge badge-warning ml-3 text-center">{{ msgnum }}</span>
+                            {% endif %}
+                        </a>
+                        <a class="dropdown-item pl-3" href="{% url 'account_logout' %}"><i
+                                class="fa fa-fw fa-sign-out text-info mr-2"></i>退出</a>
+                    </div>
+                </li>
+            {% else %}
+                <li class="nav-item mr-2">
+                    <a class="nav-link py-md-3" href="{% url 'account_login' %}?next={{ request.path }}">登录</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link py-md-3" href="{% url 'account_signup' %}?next={{ request.path }}">注册</a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
